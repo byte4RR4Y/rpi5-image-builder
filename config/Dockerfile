@@ -22,7 +22,7 @@ SHELL ["/bin/bash", "-c"]
 RUN apt update -y && apt upgrade -y && apt install -y apt-utils dialog aptitude
 
 ## [15] install the basic debian system
-RUN aptitude install -y '?priority(required)' '?priority(important)' '?priority(standard)' nano wget curl sudo gpg gpg-agent network-manager zip unzip
+RUN aptitude install -y '?priority(required)' '?priority(important)' '?priority(standard)' nano wget curl sudo gpg gpg-agent network-manager zip unzip e2fsprogs
 
 ## [16-24] adding the raspberrypi repository
 RUN wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
@@ -33,7 +33,8 @@ RUN rm raspberrypi*
 RUN echo "deb [signed-by=/etc/apt/trusted.gpg.d/raspberrypi.gpg] http://archive.raspberrypi.org/debian/ bookworm main untested" > /etc/apt/sources.list.d/raspberrypi.list
 RUN echo "Package: firmware-brcm80211" >> /etc/apt/preferences.d/wifi-driver
 RUN echo "Pin: origin archive.raspberrypi.org" >> /etc/apt/preferences.d/wifi-driver
-RUN echo "Pin-Priority: 999" >> /etc/apt/preferences.d/wifi-driver
+RUN echo "Pin-Priority: 999" >> /etc/apt/preferences.d/wifi-driver && \
+	echo "/dev/mmcblk0p1  /boot/firmware  vfat  rw  0  2" >> /etc/fstab
 
 
 ## [25] update repositories
@@ -58,6 +59,8 @@ RUN if [[ $DESKTOP == "xfce" ]]; then \
 RUN echo "#! /bin/bash" > /etc/rc.local && \
     echo "" >> /etc/rc.local && \
     echo "if [ -e /etc/firstboot ]; then" >> /etc/rc.local && \
+    echo "  resize2fs /dev/mmcblk0p2" >> /etc/rc.local && \
+    echo "  echo '/dev/mmcblk0p1  /boot/firmware  vfat  rw  0  2' >> /etc/fstab " >> /etc/rc.local && \
     echo "	/usr/local/bin/growroot.sh" >> /etc/rc.local && \
     echo "	hostnamectl set-hostname rpi5" >> /etc/rc.local && \
     echo "	chmod u+s /usr/bin/sudo" >> /etc/rc.local && \
