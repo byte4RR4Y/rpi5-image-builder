@@ -829,5 +829,4 @@ if [ "${XCOMPILE}" = "FALSE" ]; then
     echo "Reboot required to use new kernel"
   fi
 fi
-echo ""
-
+echo "1" > $CURDIR/config/kernel_status
