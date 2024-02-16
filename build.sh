@@ -11,7 +11,6 @@ usage() {
     echo "  -k, --kernelbranch KERNELBRANCH Choose the Kernel branch (e.g., rpi-6.1.y, rpi-6.2.y)"
     echo "  -d, --desktop DESKTOP           Choose the desktop environment (e.g., xfce, none)"
     echo "  -a, --additional ADDITIONAL     Choose whether to install additional software (yes/no)"
-    echo "                                  This only has an effect in combination with --desktop(or -d)"
     echo "  -u, --username USERNAME         Enter the username for the sudo user"
     echo "  -p, --password PASSWORD         Enter the password for the sudo user"
     echo "  -b                              Build the image with the specified configuration without asking"
@@ -44,24 +43,6 @@ done
 
 # Check if arguments are missing
 if [ -z "$SUITE" ] || [ -z "$BRANCH" ] || [ -z "$DESKTOP" ] || [ -z "$ADDITIONAL" ] || [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
-    echo "Missing arguments!"
-    usage
-fi
-
-echo "cleaning build area..."
-sleep 2
-rm .config
-rm .boot.img
-rm .rootfs.img
-rm .rootfs.tar
-rm files/firmware/initrd.img
-rm files/firmware/kernel_2712.img
-rm -f files/kernel/*.zip
-rm -rf .rootfs/
-rm config/rootfs_size.txt
-
-docker rmi rpi:latest
-
 clear
 echo "Choose the Debian Suite:"
 echo ""
@@ -183,6 +164,23 @@ while IFS='=' read -r key value; do
             ;;
     esac
 done < .config
+fi
+
+echo "cleaning build area..."
+sleep 2
+rm .config
+rm .boot.img
+rm .rootfs.img
+rm .rootfs.tar
+rm files/firmware/initrd.img
+rm files/firmware/kernel_2712.img
+rm -f files/kernel/*.zip
+rm -rf .rootfs/
+rm config/rootfs_size.txt
+
+docker rmi rpi:latest
+
+
 echo "------------------------------"
 echo "SUITE="$SUITE
 echo "BRANCH="$BRANCH
@@ -243,7 +241,7 @@ xfce4-terminal --title="Building Kernel $BRANCH" --command="scripts/kernelbuilde
 # Führe den Docker-Build-Befehl aus
 echo "Building Docker image..."
 sleep 1
-docker build --build-arg "SUITE="$SUITE --build-arg "DESKTOP="$DESKTOP --build-arg "ADDITIONAL="$ADDITIONAL --build-arg "USERNAME="$USERNAME --build-arg "PASSWORD="$PASSWORD -t rpi:latest -f docker/Dockerfile .
+docker build --build-arg "SUITE="$SUITE --build-arg "DESKTOP="$DESKTOP --build-arg "ADDITIONAL="$ADDITIONAL --build-arg "USERNAME="$USERNAME --build-arg "PASSWORD="$PASSWORD -t rpi:latest -f config/Dockerfile .
 
 echo "---------------------------------------------------------------------------------------"
 echo "---------------------------------------------------------------------------------------"
