@@ -22,7 +22,7 @@ SHELL ["/bin/bash", "-c"]
 RUN apt update -y && apt upgrade -y && apt install -y apt-utils dialog aptitude
 
 ## [15] install the basic debian system
-RUN aptitude install -y '?priority(required)' '?priority(important)' '?priority(standard)' nano wget curl sudo gpg gpg-agent network-manager
+RUN aptitude install -y '?priority(required)' '?priority(important)' '?priority(standard)' nano wget curl sudo gpg gpg-agent network-manager firmware-brcm80211
 
 ## [16-21] adding the raspberrypi repository
 RUN wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
@@ -54,6 +54,8 @@ RUN if [[ $DESKTOP == "xfce" ]]; then \
 RUN echo "#! /bin/bash" > /etc/rc.local && \
     echo "" >> /etc/rc.local && \
     echo "if [ -e /etc/firstboot ]; then" >> /etc/rc.local && \
+    echo "	hostnamectl set-hostname rpi5" >> /etc/rc.local && \
+    echo "	chmod u+s /usr/bin/sudo" >> /etc/rc.local && \
     echo "	dpkg-reconfigure lightdm" >> /etc/rc.local && \
     echo "	dpkg-reconfigure xorg" >> /etc/rc.local && \
     echo "	dpkg-reconfigure xinit" >> /etc/rc.local && \
@@ -77,5 +79,17 @@ RUN useradd -m -s /bin/bash "$USERNAME" \
 RUN mkdir -p /boot/firmware
 
 ## [31] Installing auto grow rootfilesystem on firstboot
-RUN aptitude install -y initramfs-tools cloud-initramfs-growroot
+RUN aptitude install -y initramfs-tools
+
+## [32] Set SU-Bit for sudo
+RUN chmod u+s /usr/bin/sudo
+
+## [33] install auto grow root on firstboot
+RUN aptitude install -y cloud-initramfs-growroot
+
+## [34] make directory for kernel installation files
+RUN mkdir /customkernel
+
+## [35] create firstboot file for first boot setup
+RUN touch /etc/firstboot
 
