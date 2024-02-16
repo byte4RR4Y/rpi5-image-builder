@@ -10,6 +10,7 @@
     git clone https://github.com/byte4RR4Y/rpi5-image-builder
     cd rpi-image-builder
     chmod +x ./*
+    chmod +x scripts/*
     sudo ./install.sh
 ----------------------
 
