@@ -35,7 +35,6 @@ RUN echo "Package: firmware-brcm80211" >> /etc/apt/preferences.d/wifi-driver
 RUN echo "Pin: origin archive.raspberrypi.org" >> /etc/apt/preferences.d/wifi-driver
 RUN echo "Pin-Priority: 999" >> /etc/apt/preferences.d/wifi-driver
 
-
 ## [25] update repositories
 RUN aptitude update -y
 
