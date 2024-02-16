@@ -666,7 +666,7 @@ if [ "${INTERACTIVE}" = "TRUE" ]; then
   /bin/bash -i
 fi
 echo ""
-BUILD="$(sed -n 's|^.*\s\+\(\S\+\.\S\+\.\S\+\)\s\+Kernel Configuration$|\1|p' .config)-rpi999-rpi-${KRNLID}"
+BUILD="$(sed -n 's|^.*\s\+\(\S\+\.\S\+\.\S\+\)\s\+Kernel Configuration$|\1|p' .config)-byte4rr4y-rpi-${KRNLID}"
 if [ "${XCOMPILE}" = "TRUE" ]; then
   DSTDIR="$(mktemp --directory --tmpdir build-kernel-dstdir-XXXXX)"
   if [ $? -ne 0 ]; then
