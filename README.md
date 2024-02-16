@@ -18,8 +18,8 @@
 
 
 # Required Host system:
-  -amd64
-  -Debian(bullseye and bookworm are tested)
+  - amd64
+  - Debian (bullseye and bookworm are tested)
 
 # What you can build?
 DEBIAN:
