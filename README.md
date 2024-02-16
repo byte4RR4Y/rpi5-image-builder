@@ -1,9 +1,5 @@
 # rpi5-image-builder
-
-You must resize rootfs manually, i work on auto-grow-root at the moment
-
-You simply can use 'raspi-config'
-
+######################################################################
 # This script builds a SD-Card image for raspberry pi 5 as it follows:
     - Building the rootfile system inside a docker container.
     - Compiling a Custom RPi-Kernel and installing it.
