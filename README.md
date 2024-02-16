@@ -20,6 +20,8 @@ You simply can use 'raspi-config'
 
 You will find your image in the output folder.
 
+If zou want to conntrol the build by the commandline type './build.sh -h'
+
 # Adding custom packages to install
     -If you want to add packages to install, append it to config/app-packages/pkg.txt
      instead of modifying the Dockerfile
