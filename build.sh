@@ -212,7 +212,7 @@ echo "------------------------"
 
 docker exec rpicontainer mkdir customkernel
 docker cp files/kernel/*.zip rpicontainer:/customkernel
-docker cp files/scripts/installkernel.sh rpicontainer:/customkernel
+docker cp scripts/installkernel.sh rpicontainer:/customkernel
 docker exec rpicontainer /customkernel/installkernel.sh *.zip
 docker cp rpicontainer:/boot/firmware/kernel_2712.img files/firmware/kernel_2712.img
 docker exec rpicontainer rm /boot/firmware/kernel_2712.img
