@@ -266,9 +266,13 @@ docker cp files/kernel/kernel.zip rpicontainer:/
 docker cp scripts/installkernel.sh rpicontainer:/
 docker exec rpicontainer ./installkernel.sh kernel.zip
 docker cp rpicontainer:/boot/firmware/kernel_2712.img files/firmware/kernel_2712.img
+docker cp rpicontainer:/boot/firmware/* files/firmware/
 docker exec rpicontainer rm /boot/firmware/kernel_2712.img
 docker exec rpicontainer rm -rf /installkernel.sh
 docker exec rpicontainer rm -rf /kernel.zip
+docker exec rpicontainer rm -rf /boot/firmware
+docker exec rpicontainer mkdir -p /boot/firmware
+
 
 
 docker exec rpicontainer bash -c 'cp /boot/initrd.img-* /tmp/initrd.img'
