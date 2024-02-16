@@ -221,7 +221,7 @@ docker exec rpicontainer bash -c 'cp /boot/initrd.img-* /tmp/initrd.img'
 docker cp rpicontainer:/tmp/initrd.img files/firmware/initrd.img
 docker exec rpicontainer bash -c 'rm /tmp/initrd.img'
 
-docker exec rpicontainer echo $(du -sm --exclude=/proc / | awk '{print $1}') > rootfs_size.txt
+docker exec rpicontainer "echo $(du -sm --exclude=/proc / | awk '{print $1}') > rootfs_size.txt"
 docker cp rpicontainer:/rootfs_size.txt config/
 docker exec rpicontainer rm /rootfs_size.txt
 
