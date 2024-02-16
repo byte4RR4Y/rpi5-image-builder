@@ -28,8 +28,7 @@ You will find your image in the output folder.
 
 
 # Required Host system:
-  - amd64
-  - Debian (bullseye and bookworm are tested)
+  - Debian/amd64 (bullseye, bookworm, MX 21 and MX23 are tested)
 
 # What you can build?
 DEBIAN:
