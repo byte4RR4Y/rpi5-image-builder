@@ -356,10 +356,7 @@ if [[ "${XCOMPILE}" = "FALSE" &&\
  (("${KRNLID}" != "v8" && "${KRNLID}" != "2712") && "${ARCH_U}" = "arm64")) ]]; then
   errexit "Local builds require similar kernel and userland architectures: use cross-compile mode (-x,--cross-compile) instead"
 fi
-instpkgs bc bison flex git libc6-dev libncurses5-dev libssl-dev make wget
-if [ "${XCOMPILE}" = "TRUE" ]; then
-  instpkgs crossbuild-essential-armhf crossbuild-essential-arm64
-fi
+
 if [[ "${UNATND}" = "FALSE" && "${BRANCH}" = "" ]]; then
   echo ""
   echo -n "Branch (commitid/current/default/rpi-M.N.y): "
