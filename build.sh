@@ -183,7 +183,7 @@ done < .config
 
 echo "0" > config/kernel_status
 # Cloning and building the Kernel in an extra routine
-xfce4-terminal --title="Building Kernel $BRANCH" --command="scripts/kernelbuilder.sh $BRANCH" &
+xfce4-terminal --title="Building Kernel $BRANCH" --command="scripts/kernelbuilder.sh -x -c 5 -f -j $(($(nproc))) -p -s 'byte4rr4y' -b $BRANCH -u" &
 
 
 
@@ -210,12 +210,13 @@ echo "------------------------"
 echo "| Installing Kernel... |"
 echo "------------------------"
 
-docker exec rpicontainer mkdir customkernel
+
 docker cp files/kernel/*.zip rpicontainer:/customkernel
 docker cp scripts/installkernel.sh rpicontainer:/customkernel
 docker exec rpicontainer /customkernel/installkernel.sh *.zip
 docker cp rpicontainer:/boot/firmware/kernel_2712.img files/firmware/kernel_2712.img
 docker exec rpicontainer rm /boot/firmware/kernel_2712.img
+docker exec rpicontainer rm -rf /customkernel
 
 docker exec rpicontainer bash -c 'cp /boot/initrd.img-* /tmp/initrd.img'
 docker cp rpicontainer:/tmp/initrd.img files/firmware/initrd.img
@@ -273,3 +274,4 @@ scripts/imager.sh mbr .boot.img .rootfs.img "output/Build-${TIMESTAMP}.img"
 fi
 
 exit 0
+
