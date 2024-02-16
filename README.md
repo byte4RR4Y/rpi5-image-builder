@@ -15,6 +15,8 @@
 # To build an SD-Card image follow the instructions after:
     sudo ./build.sh
 
+You will find your image in the output folder.
+
 # Adding custom packages to install
     -If you want to add packages to install, append it to config/app-packages/pkg.txt
      instead of modifying the Dockerfile
