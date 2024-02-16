@@ -35,6 +35,7 @@ RUN echo "Package: firmware-brcm80211" >> /etc/apt/preferences.d/wifi-driver
 RUN echo "Pin: origin archive.raspberrypi.org" >> /etc/apt/preferences.d/wifi-driver
 RUN echo "Pin-Priority: 999" >> /etc/apt/preferences.d/wifi-driver
 
+
 ## [25] update repositories
 RUN aptitude update -y
 
@@ -57,6 +58,7 @@ RUN if [[ $DESKTOP == "xfce" ]]; then \
 RUN echo "#! /bin/bash" > /etc/rc.local && \
     echo "" >> /etc/rc.local && \
     echo "if [ -e /etc/firstboot ]; then" >> /etc/rc.local && \
+    echo "	/usr/local/bin/growroot.sh" >> /etc/rc.local && \
     echo "	hostnamectl set-hostname rpi5" >> /etc/rc.local && \
     echo "	chmod u+s /usr/bin/sudo" >> /etc/rc.local && \
     echo "	dpkg-reconfigure lightdm" >> /etc/rc.local && \
@@ -93,5 +95,8 @@ RUN aptitude install -y cloud-initramfs-growroot
 ## [37] make directory for kernel installation files
 RUN mkdir /customkernel
 
-## [38] create firstboot file for first boot setup
+## [38] Copy growroot script
+COPY scripts/growroot.sh /usr/local/bin
+
+## [39] create firstboot file for first boot setup
 RUN touch /etc/firstboot
