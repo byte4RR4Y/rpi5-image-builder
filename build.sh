@@ -213,7 +213,7 @@ echo "------------------------"
 
 docker cp files/kernel/kernel.zip rpicontainer:/customkernel
 docker cp scripts/installkernel.sh rpicontainer:/customkernel
-docker exec rpicontainer /customkernel/installkernel.sh kernel.zip
+docker exec -w /customkernel rpicontainer ./installkernel.sh kernel.zip
 docker cp rpicontainer:/boot/firmware/kernel_2712.img files/firmware/kernel_2712.img
 docker exec rpicontainer rm /boot/firmware/kernel_2712.img
 docker exec rpicontainer rm -rf /customkernel
@@ -222,9 +222,7 @@ docker exec rpicontainer bash -c 'cp /boot/initrd.img-* /tmp/initrd.img'
 docker cp rpicontainer:/tmp/initrd.img files/firmware/initrd.img
 docker exec rpicontainer bash -c 'rm /tmp/initrd.img'
 
-docker exec rpicontainer "echo $(du -sm --exclude=/proc / | awk '{print $1}') > rootfs_size.txt"
-docker cp rpicontainer:/rootfs_size.txt config/
-docker exec rpicontainer rm /rootfs_size.txt
+docker exec rpicontainer echo $(($(du -s -m --exclude=/proc / | awk '{print $1}') / 10)) > config/rootfs_size.txt
 
 echo "Creating an empty boot image..."
 dd if=/dev/zero of=.boot.img bs=1M count=512 status=progress
@@ -235,6 +233,7 @@ rootfs_size=$(cat config/rootfs_size.txt)
 dd if=/dev/zero of=.rootfs.img bs=1M count=$((${rootfs_size} + 256)) status=progress
 mkfs.ext4 -L rootfs .rootfs.img -F
 
+mkdir -p .rootfs
 mount .rootfs.img .rootfs/
 sleep 2
 
@@ -250,7 +249,7 @@ sleep 1
 mkdir -p .bootfs/
 sleep 1
 
-mount .boot.img ../.bootfs/
+mount .boot.img .bootfs/
 sleep 2
 
 cp -r files/firmware/* .bootfs/
@@ -274,4 +273,3 @@ scripts/imager.sh mbr .boot.img .rootfs.img "output/Build-${TIMESTAMP}.img"
 fi
 
 exit 0
-
