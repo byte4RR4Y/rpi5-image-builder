@@ -2,7 +2,7 @@
 #####################################################################################
 # This script builds a SD-Card image for raspberry pi 5 as it follows:
     - Building the rootfile system inside a docker container.
-    - Compiling a Custom RPi-Kernel and installing it. (stolen from RonR until my own is finished)
+    - Compiling a Custom RPi-Kernel and installing it. (Script stolen from RonR until my own is finished)
     - Put everything together to create a bootable SD-Card image.
 
 # Installation:
