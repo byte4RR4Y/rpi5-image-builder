@@ -1,8 +1,11 @@
 ## rpi5-image-builder
 
 
-# To install all dependencies:
+# Installation:
+----------------------
+    git clone https://github.com/byte4RR4Y/rpi5-image-builder
     sudo ./install.sh
+----------------------
 
 # To build an SD-Card image follow the instructions after:
     sudo ./build.sh
