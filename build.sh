@@ -2,10 +2,50 @@
 
 TIMESTAMP=$(date +%s)
 
-if [ "$UID" -ne 0 ]; then 
+usage() {
+    echo "Usage: $0 [-h|--help] [-s|--suite SUITE] [-k|--kernelbranch KERNELBRANCH] [-d|--desktop DESKTOP] [-a|--additional ADDITIONAL] [-u|--username USERNAME] [-p|--password PASSWORD] [-b]"
+    echo "-------------------------------------------------------------------------------------------------"
+    echo "Options:"
+    echo "  -h, --help                      Show this help message and exit"
+    echo "  -s, --suite SUITE               Choose the Debian suite (e.g., testing, experimental, trixie)"
+    echo "  -k, --kernelbranch KERNELBRANCH Choose the Kernel branch (e.g., rpi-6.1.y, rpi-6.2.y)"
+    echo "  -d, --desktop DESKTOP           Choose the desktop environment (e.g., xfce, none)"
+    echo "  -a, --additional ADDITIONAL     Choose whether to install additional software (yes/no)"
+    echo "                                  This only has an effect in combination with --desktop(or -d)"
+    echo "  -u, --username USERNAME         Enter the username for the sudo user"
+    echo "  -p, --password PASSWORD         Enter the password for the sudo user"
+    echo "  -b                              Build the image with the specified configuration without asking"
+    echo "-------------------------------------------------------------------------------------------------"
+    exit 1
+}
+
+# Check if running with sudo
+if [ "$UID" -ne 0 ]; then
     echo "This program needs sudo rights."
     echo "Run it with 'sudo $0'"
     exit 1
+fi
+
+# Parse arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -h|--help) usage;;
+        -s|--suite) SUITE="$2"; shift ;;
+        -k|--kernelbranch) BRANCH="$2"; shift ;;
+        -d|--desktop) DESKTOP="$2"; shift ;;
+        -a|--additional) ADDITIONAL="$2"; shift ;;
+        -u|--username) USERNAME="$2"; shift ;;
+        -p|--password) PASSWORD="$2"; shift ;;
+        -b) BUILD="yes" ;;
+        *) echo "Unknown parameter passed: $1"; usage ;;
+    esac
+    shift
+done
+
+# Check if arguments are missing
+if [ -z "$SUITE" ] || [ -z "$BRANCH" ] || [ -z "$DESKTOP" ] || [ -z "$ADDITIONAL" ] || [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
+    echo "Missing arguments!"
+    usage
 fi
 
 echo "cleaning build area..."
@@ -151,12 +191,25 @@ echo "ADDITIONAL="$ADDITIONAL
 echo "USERNAME="$USERNAME
 echo "PASSWORD="$PASSWORD
 echo "------------------------------"
-echo "Do you want to build your image with this configuration?"
-echo ""
-echo "1. yes"
-echo "2. no"
-read -p "" choice
-if [[ "$choice" -eq 1 ]]; then
+# Proceed with building image if -b option provided or ask for confirmation
+if [[ "$BUILD" == "yes" ]]; then
+    echo "Building image with the specified configuration..."
+else
+    clear
+	echo "Do you want to build the image with this configuration?"
+	echo ""
+	echo "1. yes"
+	echo "2. no"
+	echo ""
+	read -p "Enter the number of your choice: " choice2
+	if [[ "$choice2" -eq 1 ]]; then
+	    BUILD="yes"
+	else
+	    exit 1
+	fi
+fi
+
+if [[ "$BUILD" == "yes" ]]; then
 echo "---------------------------------------------------------------------------------------"
 echo "---------------------------------------------------------------------------------------"
 echo "---------------------------------------------------------------------------------------"
@@ -271,5 +324,4 @@ sleep 1
 mkdir -p output
 scripts/imager.sh mbr .boot.img .rootfs.img "output/Build-${TIMESTAMP}.img"
 fi
-
 exit 0
