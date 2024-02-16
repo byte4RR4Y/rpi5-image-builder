@@ -92,11 +92,8 @@ RUN chmod u+s /usr/bin/sudo
 ## [36] install auto grow root on firstboot
 RUN aptitude install -y cloud-initramfs-growroot
 
-## [37] make directory for kernel installation files
-RUN mkdir /customkernel
-
-## [38] Copy growroot script
+## [37] Copy growroot script
 COPY scripts/growroot.sh /usr/local/bin
 
-## [39] create firstboot file for first boot setup
+## [38] create firstboot file for first boot setup
 RUN touch /etc/firstboot
