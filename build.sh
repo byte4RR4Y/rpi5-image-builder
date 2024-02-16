@@ -264,12 +264,14 @@ echo "| Installing Kernel... |"
 echo "------------------------"
 
 
-docker cp files/kernel/kernel.zip rpicontainer:/customkernel
-docker cp scripts/installkernel.sh rpicontainer:/customkernel
-docker exec -w /customkernel rpicontainer ./installkernel.sh kernel.zip
+docker cp files/kernel/kernel.zip rpicontainer:/
+docker cp scripts/installkernel.sh rpicontainer:/
+docker exec rpicontainer ./installkernel.sh kernel.zip
 docker cp rpicontainer:/boot/firmware/kernel_2712.img files/firmware/kernel_2712.img
 docker exec rpicontainer rm /boot/firmware/kernel_2712.img
-docker exec rpicontainer rm -rf /customkernel
+docker exec rpicontainer rm -rf /installkernel.sh
+docker exec rpicontainer rm -rf /kernel.zip
+
 
 docker exec rpicontainer bash -c 'cp /boot/initrd.img-* /tmp/initrd.img'
 docker cp rpicontainer:/tmp/initrd.img files/firmware/initrd.img
