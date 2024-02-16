@@ -42,4 +42,4 @@ DEBIAN:
 Kernel from 3.16.x - 6.8.x
 
 Currently supported desktops:
-  - XFCE
+  - XFCE (Not yet tested, report any issues)
