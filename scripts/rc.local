@@ -1,0 +1,19 @@
+#! /bin/bash
+
+root_device=$(findmnt / --noheadings --output SOURCE)
+disk_name=$(lsblk -no pkname $root_device)
+first_partition_device=/dev/${disk_name}p1
+if [ -e /etc/firstboot ]; then" >> /etc/rc.local
+  echo $first_partition_device  /boot/firmware  vfat  rw  0  2' >> /etc/fstab
+  resize2fs $root_device
+  hostnamectl set-hostname rpi5
+  chmod u+s /usr/bin/sudo
+  dpkg-reconfigure lightdm
+  dpkg-reconfigure xorg
+  dpkg-reconfigure xinit
+  dpkg-reconfigure xfce4
+  rm /etc/firstboot
+  reboot
+fi
+
+exit 0
