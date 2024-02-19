@@ -315,8 +315,10 @@ fsck -f .boot.img
 e2fsck -f .rootfs.img
 resize2fs -M .rootfs.img
 sleep 1
-
+if [[ "$DESKTOP" == "none "]]; then
+    DESKTOP="CLI"
+fi
 mkdir -p output
-scripts/imager.sh mbr .boot.img .rootfs.img "output/Build-${TIMESTAMP}.img"
+scripts/imager.sh mbr .boot.img .rootfs.img "output/Build-${SUITE}-${DESKTOP}-${TIMESTAMP}.img"
 fi
 exit 0
