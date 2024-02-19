@@ -7,7 +7,6 @@ ARG DESKTOP
 ARG ADDITIONAL
 ARG USERNAME
 ARG PASSWORD
-
 ENV DESKTOP=$DESKTOP
 ENV ADDITIONAL=$ADDITIONAL
 ENV USERNAME=$USERNAME
@@ -22,7 +21,7 @@ SHELL ["/bin/bash", "-c"]
 RUN apt update -y && apt upgrade -y && apt install -y apt-utils dialog aptitude
 
 ## [15] install the basic debian system
-RUN aptitude install -y '?priority(required)' '?priority(important)' '?priority(standard)' nano wget curl sudo gpg gpg-agent network-manager zip unzip e2fsprogs
+RUN aptitude install -y '?priority(required)' '?priority(important)' '?priority(standard)' nano wget curl sudo gpg gpg-agent network-manager zip unzip e2fsprogs apparmor kmod
 
 ## [16-24] adding the raspberrypi repository
 RUN wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
@@ -41,7 +40,7 @@ RUN echo "Pin-Priority: 999" >> /etc/apt/preferences.d/wifi-driver && \
 RUN aptitude update -y
 
 ## [26] installing raspberrypi tools and configuration
-RUN aptitude install -y raspi-config raspi-firmware raspi-utils rpi-eeprom rpi-eeprom-images firmware-brcm80211
+RUN aptitude install -y raspi-config raspi-firmware raspi-utils rpi-eeprom rpi-eeprom-images firmware-brcm80211 git bc bison flex libssl-dev make
 
 ## [27-28] installing additional apt packages from apt-packages/pkg.txt
 COPY config/apt-packages/pkg.txt /root
@@ -54,29 +53,11 @@ RUN if [[ $DESKTOP == "xfce" ]]; then \
     aptitude install -y xfce4-goodies darkcold-gtk-theme firefox-esr synaptic pavucontrol pulseaudio pulseaudio-module-bluetooth vlc gimp menulibre xfce4-power-manager xfce4-settings alsa-utils \
         ; fi \
     ; fi
-## [30] Creating rc.local to reconfigure lightdm and xfce on first boot and reboot into desktop
-
-RUN echo "#! /bin/bash" > /etc/rc.local && \
-    echo "" >> /etc/rc.local && \
-    echo "if [ -e /etc/firstboot ]; then" >> /etc/rc.local && \
-    echo "  resize2fs /dev/mmcblk0p2" >> /etc/rc.local && \
-    echo "  echo '/dev/mmcblk0p1  /boot/firmware  vfat  rw  0  2' >> /etc/fstab " >> /etc/rc.local && \
-    echo "	/usr/local/bin/growroot.sh" >> /etc/rc.local && \
-    echo "	hostnamectl set-hostname rpi5" >> /etc/rc.local && \
-    echo "	chmod u+s /usr/bin/sudo" >> /etc/rc.local && \
-    echo "	dpkg-reconfigure lightdm" >> /etc/rc.local && \
-    echo "	dpkg-reconfigure xorg" >> /etc/rc.local && \
-    echo "	dpkg-reconfigure xinit" >> /etc/rc.local && \
-    echo "	dpkg-reconfigure xfce4" >> /etc/rc.local && \
-    echo "	rm /etc/firstboot" >> /etc/rc.local && \
-    echo "	reboot" >> /etc/rc.local && \
-    echo "fi" >> /etc/rc.local && \
-    echo "" >> /etc/rc.local && \
-    echo "exit 0" >> /etc/rc.local
+## [30] Copy rc.local to update /etc/fstab and reconfigure lightdm and xfce on first boot and reboot into desktop
+COPY scripts/rc.local /etc/
 
 ## [31] make /etc/rc.local executable
 RUN chmod +x /etc/rc.local
-
 
 ## [32] Create a sudo user
 RUN useradd -m -s /bin/bash "$USERNAME" \
@@ -84,7 +65,7 @@ RUN useradd -m -s /bin/bash "$USERNAME" \
     && usermod -aG sudo "$USERNAME"
 
 ## [33] Creating the firmware folder
-RUN mkdir -p /boot/firmware
+RUN mkdir -p /boot/firmware/overlays
 
 ## [34] Installing auto grow rootfilesystem on firstboot
 RUN aptitude install -y initramfs-tools
@@ -95,8 +76,8 @@ RUN chmod u+s /usr/bin/sudo
 ## [36] install auto grow root on firstboot
 RUN aptitude install -y cloud-initramfs-growroot
 
-## [37] Copy growroot script
-COPY scripts/growroot.sh /usr/local/bin
-
-## [38] create firstboot file for first boot setup
+## [37] create firstboot file for first boot setup
 RUN touch /etc/firstboot
+
+# [38] save size of root filesystem in rootfs_size.txt, needed for creating the rootfs image
+RUN echo $(($(du -s -m --exclude=/proc / | awk '{print $1}'))) > /rootfs_size.txt
