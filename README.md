@@ -1,5 +1,5 @@
-# rpi5-image-builder
-#####################################################################################
+# rpi5-image-builder(UPDATED: 2024-02-19)
+######################################################################################
 # This script builds a SD-Card image for raspberry pi 5 as it follows:
     - Building the rootfile system inside a docker container.
     - Compiling a Custom RPi-Kernel and installing it.
