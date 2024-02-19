@@ -25,6 +25,20 @@ if [ "$UID" -ne 0 ]; then
     exit 1
 fi
 
+echo "cleaning build area..."
+sleep 2
+rm .config
+rm .boot.img
+rm .rootfs.img
+rm .rootfs.tar
+rm files/firmware/initrd.img
+rm files/firmware/kernel_2712.img
+rm -f files/kernel/*.zip
+rm -rf .rootfs/
+rm config/rootfs_size.txt
+
+docker rmi rpi:latest
+
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -166,21 +180,6 @@ while IFS='=' read -r key value; do
 done < .config
 fi
 
-echo "cleaning build area..."
-sleep 2
-rm .config
-rm .boot.img
-rm .rootfs.img
-rm .rootfs.tar
-rm files/firmware/initrd.img
-rm files/firmware/kernel_2712.img
-rm -f files/kernel/*.zip
-rm -rf .rootfs/
-rm config/rootfs_size.txt
-
-docker rmi rpi:latest
-
-
 echo "------------------------------"
 echo "SUITE="$SUITE
 echo "BRANCH="$BRANCH
@@ -231,14 +230,9 @@ while IFS='=' read -r key value; do
             ;;
     esac
 done < .config
-
 echo "0" > config/kernel_status
-# Cloning and building the Kernel in an extra routine
-xfce4-terminal --title="Building Kernel $BRANCH" --command="scripts/kernelbuilder.sh -x -c 5 -f -j $(($(nproc))) -p -s 'byte4rr4y' -b $BRANCH -u" &
+xfce4-terminal --title="Building Kernel ${BRANCH}" --command="scripts/makekernel.sh ${BRANCH}" &
 
-
-
-# Führe den Docker-Build-Befehl aus
 echo "Building Docker image..."
 sleep 1
 docker build --build-arg "SUITE="$SUITE --build-arg "DESKTOP="$DESKTOP --build-arg "ADDITIONAL="$ADDITIONAL --build-arg "USERNAME="$USERNAME --build-arg "PASSWORD="$PASSWORD -t rpi:latest -f config/Dockerfile .
@@ -257,29 +251,26 @@ while [[ "$(cat config/kernel_status)" != "1" ]]; do
 done
 
 docker run --platform linux/arm64/v8 -dit --rm --name rpicontainer rpi:latest /bin/bash
-echo "------------------------"
-echo "| Installing Kernel... |"
-echo "------------------------"
 
-
-docker cp files/kernel/kernel.zip rpicontainer:/
+docker cp linux.zip rpicontainer:/
+docker exec rpicontainer bash -c 'unzip linux.zip'
+docker cp kernel-*.zip rpicontainer:/
 docker cp scripts/installkernel.sh rpicontainer:/
-docker exec rpicontainer ./installkernel.sh kernel.zip
-docker cp rpicontainer:/boot/firmware/kernel_2712.img files/firmware/kernel_2712.img
-docker cp rpicontainer:/boot/firmware/* files/firmware/
-docker exec rpicontainer rm /boot/firmware/kernel_2712.img
-docker exec rpicontainer rm -rf /installkernel.sh
-docker exec rpicontainer rm -rf /kernel.zip
+docker exec rpicontainer bash -c './installkernel.sh kernel-*.zip'
+docker exec rpicontainer rm -rf kernel-*.zip
+docker exec rpicontainer rm /installkernel.sh
+rm kernel-*.zip
+
+docker cp rpicontainer:/boot/firmware/ files/
 docker exec rpicontainer rm -rf /boot/firmware
-docker exec rpicontainer mkdir -p /boot/firmware
-
-
+docker exec rpicontainer bash -c 'mkdir -p /boot/firmware'
 
 docker exec rpicontainer bash -c 'cp /boot/initrd.img-* /tmp/initrd.img'
 docker cp rpicontainer:/tmp/initrd.img files/firmware/initrd.img
 docker exec rpicontainer bash -c 'rm /tmp/initrd.img'
 
-docker exec rpicontainer echo $(($(du -s -m --exclude=/proc / | awk '{print $1}') / 10)) > config/rootfs_size.txt
+docker cp rpicontainer:/rootfs_size.txt config/
+docker exec rpicontainer bash -c 'rm /rootfs_size.txt'
 
 echo "Creating an empty boot image..."
 dd if=/dev/zero of=.boot.img bs=1M count=512 status=progress
@@ -320,7 +311,7 @@ sleep 2
 rm -rf linux/
 rm -rf .rootfs
 rm -rf .bootfs
-fsck -f -y .boot.img
+fsck -f .boot.img
 e2fsck -f .rootfs.img
 resize2fs -M .rootfs.img
 sleep 1
