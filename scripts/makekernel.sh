@@ -17,9 +17,6 @@ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- bcm2712_defconfig
 sed -i "s/^CONFIG_LOCALVERSION=.*$/CONFIG_LOCALVERSION="-byte4rr4y"/" ".config"
 BUILD="$(sed -n 's|^.*\s\+\(\S\+\.\S\+\.\S\+\)\s\+Kernel Configuration$|\1|p' .config)"
 
-  #KERNELDIR="$(mktemp --directory --tmpdir build-kernel-KERNELDIR-XXXXX)"
-
-  
       make -j ${CPUS} KERNELRELEASE="${BUILD}" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- Image.gz modules dtbs
       env PATH=$PATH make KERNELRELEASE="${BUILD}" ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- INSTALL_MOD_PATH=${KERNELDIR} modules_install
       mkdir -p "${KERNELDIR}/boot/firmware/"
@@ -51,9 +48,8 @@ BUILD="$(sed -n 's|^.*\s\+\(\S\+\.\S\+\.\S\+\)\s\+Kernel Configuration$|\1|p' .c
 chown "${REALUSER}:${REALUSER}" "${ARCHIVE}"
 cd ${CWD}/linux
 mv "${KERNELDIR}/${ARCHIVE}" "${OUTDIR}"
-cd "${CWD}"
-rm -r "${KERNELDIR}"
+rm -rf "${KERNELDIR}"
+cd ${CWD}
+rm -rf linux
 
-
-echo "1" > ${CWD}/config/kernel_status
 echo "1" > ${CWD}/config/kernel_status
