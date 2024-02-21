@@ -253,7 +253,6 @@ done
 docker run --platform linux/arm64/v8 -dit --rm --name rpicontainer rpi:latest /bin/bash
 
 docker cp kernel*.zip rpicontainer:/
-docker cp scripts/rc.local rpicontainer:/etc
 docker cp scripts/installkernel.sh rpicontainer:/
 docker exec rpicontainer bash -c '/installkernel.sh kernel-*.zip'
 docker exec rpicontainer rm -rf kernel-*.zip
