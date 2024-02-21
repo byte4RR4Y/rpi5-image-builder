@@ -54,7 +54,7 @@ RUN if [[ $DESKTOP == "xfce" ]]; then \
         ; fi \
     ; fi
 ## [30] Copy rc.local to update /etc/fstab and reconfigure lightdm and xfce on first boot and reboot into desktop
-COPY touch /etc/rc.local && scripts/rc.local /etc/
+COPY scripts/rc.local /etc/
 
 ## [31] make /etc/rc.local executable
 RUN chmod +x /etc/rc.local
