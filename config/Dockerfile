@@ -54,7 +54,7 @@ RUN if [[ $DESKTOP == "xfce" ]]; then \
         ; fi \
     ; fi
 ## [30] Copy rc.local to update /etc/fstab and reconfigure lightdm and xfce on first boot and reboot into desktop
-COPY scripts/rc.local /etc/
+COPY touch /etc/rc.local && scripts/rc.local /etc/
 
 ## [31] make /etc/rc.local executable
 RUN chmod +x /etc/rc.local
@@ -65,7 +65,7 @@ RUN useradd -m -s /bin/bash "$USERNAME" \
     && usermod -aG sudo "$USERNAME"
 
 ## [33] Creating the firmware folder
-RUN mkdir -p /boot/firmware/overlays
+RUN mkdir -p /boot/firmware
 
 ## [34] Installing auto grow rootfilesystem on firstboot
 RUN aptitude install -y initramfs-tools
@@ -79,5 +79,10 @@ RUN aptitude install -y cloud-initramfs-growroot
 ## [37] create firstboot file for first boot setup
 RUN touch /etc/firstboot
 
+## [38] change owner of USERNAME's home
+RUN chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
+
 # [38] save size of root filesystem in rootfs_size.txt, needed for creating the rootfs image
 RUN echo $(($(du -s -m --exclude=/proc / | awk '{print $1}'))) > /rootfs_size.txt
+
+RUN echo "toor\ntoor" | passwd root
