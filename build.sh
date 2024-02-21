@@ -179,7 +179,7 @@ while IFS='=' read -r key value; do
     esac
 done < .config
 fi
-
+clear
 echo "------------------------------"
 echo "SUITE="$SUITE
 echo "BRANCH="$BRANCH
@@ -192,7 +192,7 @@ echo "------------------------------"
 if [[ "$BUILD" == "yes" ]]; then
     echo "Building image with the specified configuration..."
 else
-    clear
+    
 	echo "Do you want to build the image with this configuration?"
 	echo ""
 	echo "1. yes"
@@ -252,11 +252,10 @@ done
 
 docker run --platform linux/arm64/v8 -dit --rm --name rpicontainer rpi:latest /bin/bash
 
-docker cp linux.zip rpicontainer:/
-docker exec rpicontainer bash -c 'unzip linux.zip'
-docker cp kernel-*.zip rpicontainer:/
+docker cp kernel*.zip rpicontainer:/
+docker cp scripts/rc.local rpicontainer:/etc
 docker cp scripts/installkernel.sh rpicontainer:/
-docker exec rpicontainer bash -c './installkernel.sh kernel-*.zip'
+docker exec rpicontainer bash -c '/installkernel.sh kernel-*.zip'
 docker exec rpicontainer rm -rf kernel-*.zip
 docker exec rpicontainer rm /installkernel.sh
 rm kernel-*.zip
@@ -315,10 +314,92 @@ fsck -f .boot.img
 e2fsck -f .rootfs.img
 resize2fs -M .rootfs.img
 sleep 1
-if [[ "$DESKTOP" == "none "]]; then
-    DESKTOP="CLI"
-fi
+    if [ "$DESKTOP" == "none "]; then
+        DESKTOP="CLI"
+    fi
 mkdir -p output
-scripts/imager.sh mbr .boot.img .rootfs.img "output/Build-${SUITE}-${DESKTOP}-${TIMESTAMP}.img"
+
+TIMESTAMP=$(date +%s)
+echo $TIMESTAMP > .TIMESTAMP
+
+TMP=$(cat .TIMESTAMP)
+boot_image=".boot.img"
+root_image=".rootfs.img"
+image_name="output/Debian-${SUITE}-${DESKTOP}-build-${TMP}.img"
+reserved_spaceMB=2
+boot_sizeMB=$((($(stat -c %s ${boot_image}) / 1024 / 1024)))
+root_sizeMB=$((($(stat -c %s ${root_image}) / 1024 / 1024)))
+image_sizeMB=$((boot_sizeMB + root_sizeMB + reserved_spaceMB))
+start_part2=$((0 + boot_sizeMB))
+
+dd if=/dev/zero of=$TMP bs=1M count=$image_sizeMB
+
+loop_device=$(sudo losetup -f --show $TMP)
+
+sudo parted --script $loop_device mktable msdos
+
+sudo parted -a optimal $loop_device mkpart primary fat32 2MB ${boot_sizeMB}MB
+sudo parted -a optimal $loop_device mkpart primary ext4 ${start_part2}MB 100%
+sudo partprobe $loop_device
+
+sleep 1
+
+# Formatieren Sie die Partitionen mit den gewünschten Dateisystemen
+sudo mkfs.vfat ${loop_device}p1 -n BOOT -F 32
+sudo mkfs.ext4 ${loop_device}p2 -L rootfs -F
+
+sleep 1
+
+sudo fsck -f -y ${loop_device}p1
+sudo e2fsck -f -y ${loop_device}p2
+sudo partprobe $loop_device
+
+sleep 1
+
+# Mount-Verzeichnisse erstellen
+sudo mkdir -p loop loop/1 loop/2 loop/boot loop/root
+
+
+sleep 1
+
+# Mounten Sie die neu erstellten Partitionen
+sudo mount ${loop_device}p1 loop/1
+sudo mount ${loop_device}p2 loop/2
+sudo mount $boot_image loop/boot
+sudo mount $root_image loop/root
+
+sleep 1
+
+# Kopieren Sie den Inhalt der Quellpartitionen in die neu erstellten Partitionen
+sudo cp -r loop/boot/* loop/1
+sudo cp -r loop/root/* loop/2
+
+
+sleep 1
+
+# Demounten Sie die neu erstellten Partitionen
+sudo umount loop/1
+sudo umount loop/2
+sudo umount loop/root
+sudo umount loop/boot
+
+sleep 1
+
+# Entfernen Sie die Mount-Verzeichnisse
+sudo rm -rf loop
+
+# Erstelle das kombinierte Image
+echo "---------------------------"
+echo "Creating the final image..."
+echo "---------------------------"
+
+sudo dd if=$loop_device of=$image_name bs=1M conv=noerror status=progress
+
+sleep 1
+
+rm $TMP
+rm .TIMESTAMP
+# Entfernen Sie die Loopback-Geräte
+sudo losetup -d $loop_device
 fi
 exit 0
